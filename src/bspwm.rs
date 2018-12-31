@@ -138,7 +138,7 @@ fn spawn_bspc_subscribe(desktop_labels: Rc<RefCell<Vec<gtk::Label>>>) {
 
     });
     let labels_clone = desktop_labels.clone();
-    gtk::timeout_add(::REFRESH_RATE, move || {
+    gtk::timeout_add(::REFRESH_INTERVAL, move || {
         let iter = rx.try_iter();
         for query_result in iter {
             set_desktops_style(labels_clone.borrow(), &query_result);

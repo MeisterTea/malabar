@@ -5,6 +5,7 @@ use gtk::Orientation::Horizontal;
 
 use bspwm::{get_desktops_from_display, render_desktops};
 use clock::init_clock;
+use playerctl::init_playerctl;
 
 #[derive(Debug)]
 struct Screen {
@@ -65,6 +66,8 @@ fn set_bar(window: &ApplicationWindow, screen: Screen) {
     let desktops_labels = render_labels(desktops_list);
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
+    let label_artist = init_playerctl();
+    hbox.add(&label_artist);
     let label_time = init_clock();
     hbox.add(&label_time);
     window.add(&hbox);

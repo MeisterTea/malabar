@@ -4,6 +4,7 @@ extern crate gio;
 extern crate gtk;
 extern crate glib;
 extern crate chrono;
+extern crate mpris;
 
 use gio::prelude::*;
 use std::env::args;
@@ -13,8 +14,9 @@ mod paint;
 mod bspwm;
 mod clock;
 mod window;
+mod playerctl;
 
-const REFRESH_RATE: u32 = 100;
+const REFRESH_INTERVAL: u32 = 100;
 
 fn main() {
     let application = gtk::Application::new("com.meistertea.malabar",
