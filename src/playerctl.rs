@@ -23,6 +23,8 @@ struct Controls {
     play_pause: Rc<RefCell<Label>>
 }
 
+const CONTROLS_SCALE: f64 = 1.3;
+
 impl<'a> EventTracker<'a> {
     fn main_loop(&mut self) {
         let should_continue = true;
@@ -146,7 +148,7 @@ fn set_play_pause_button(player: &Rc<Player<'static>>, label: &Label) -> EventBo
 fn set_previous_button(player: &Rc<Player<'static>>, label: &Label) -> EventBox {
     label.set_text("");
     set_default_text_style(label);
-    set_label_scale(&label, 1.3);
+    set_label_scale(&label, CONTROLS_SCALE);
     let event_box = EventBox::new();
     let player_clone = player.clone();
     event_box.connect_button_press_event(move |_, _event_button| {
@@ -159,8 +161,8 @@ fn set_previous_button(player: &Rc<Player<'static>>, label: &Label) -> EventBox 
 
 fn set_next_button(player: &Rc<Player<'static>>, label: &Label) -> EventBox {
     label.set_text("");
-    set_label_scale(&label, 1.3);
     set_default_text_style(label);
+    set_label_scale(&label, CONTROLS_SCALE);
     let event_box = EventBox::new();
     let player_clone = player.clone();
     event_box.connect_button_press_event(move |_, _event_button| {

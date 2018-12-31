@@ -7,12 +7,10 @@ fn u8_to_u16_ratio(num: u8) -> u16 {
 }
 
 pub fn set_label_color(label: &Label, r: u8, g: u8, b: u8) {
-    let attr_list: AttrList;
-    if let Some(temp_attr_list) = label.get_attributes() {
-        attr_list = temp_attr_list;
-    } else {
-        attr_list = AttrList::new();
-    }
+    let attr_list: AttrList = match label.get_attributes() {
+        Some(list) => list,
+        None => AttrList::new()
+    };
     let foreground = Attribute::new_foreground(u8_to_u16_ratio(r), u8_to_u16_ratio(g), u8_to_u16_ratio(b))
         .expect("Couldn't create new foreground");
     let weight = Attribute::new_weight(pango::Weight::Bold)
@@ -23,12 +21,10 @@ pub fn set_label_color(label: &Label, r: u8, g: u8, b: u8) {
 }
 
 pub fn set_label_scale(label: &Label, scale: f64) {
-    let attr_list: AttrList;
-    if let Some(temp_attr_list) = label.get_attributes() {
-        attr_list = temp_attr_list;
-    } else {
-        attr_list = AttrList::new();
-    }
+    let attr_list: AttrList = match label.get_attributes() {
+        Some(list) => list,
+        None => AttrList::new()
+    };
     let scale = Attribute::new_scale(scale)
         .expect("Couldn't create new scale");
     attr_list.insert(scale);
