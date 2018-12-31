@@ -5,7 +5,7 @@ use chrono::Local;
 use paint::set_label_color;
 
 fn current_time() -> String {
-    return format!("{}", Local::now().format("%Y-%m-%d %H:%M:%S"));
+    return format!("{}", Local::now().format("%H:%M"));
 }
 
 fn set_time_widget() -> gtk::Label {
