@@ -63,7 +63,7 @@ pub fn set_desktops(query_result: &str) -> Vec<Desktop> {
         }
     }
     let split = query_result.split(':').collect::<Vec<_>>();
-    (&split[1..split.len()-3]).iter().map(|part| get_desktops_info(part)).collect::<Vec<_>>()
+    (&split).iter().map(|part| get_desktops_info(part)).collect::<Vec<_>>()
 }
 
 fn bspc_subscribe(tx: Sender<String>) {
