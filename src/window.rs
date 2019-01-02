@@ -1,14 +1,17 @@
-use gdk::{ScreenExt, DisplayExt, MonitorExt, Rectangle};
+use gdk::{Screen, ScreenExt, DisplayExt, MonitorExt, Rectangle};
 use gtk::prelude::*;
 use gtk::ApplicationWindow;
 use gtk::Orientation::Horizontal;
+use std::rc::Rc;
 
 use bspwm::{get_desktops_from_display, render_desktops};
 use clock::init_clock;
-use playerctl::init_playerctl;
+use player::init_player;
+use x11::init_x11;
+use ::Settings;
 
 #[derive(Debug)]
-struct Screen {
+struct ScreenWrapper {
     name: String,
     dimensions: Rectangle
 }
@@ -23,6 +26,7 @@ fn set_window_positions(window: &ApplicationWindow, dimension: Rectangle) {
     let strut_cardinal_atom: gdk::Atom = "_NET_WM_STRUT".into();
     let cardinal_atom: gdk::Atom = "CARDINAL".into();
     let prop_replace = gdk::PropMode::Replace;
+    //TODO replace sizes by screen
     let data_partial_cardinal = gdk::ChangeData::ULongs(&[0, 0, 48, 0, 0, 0, 0, 0, 8, 1916, 0, 0]);
     let data_cardinal = gdk::ChangeData::ULongs(&[0, 0, 48, 0]);
 
@@ -47,8 +51,8 @@ fn set_window_positions(window: &ApplicationWindow, dimension: Rectangle) {
     window.move_(dimension.x + OFFSET, dimension.y + OFFSET);
 }
 
-fn set_bar(window: &ApplicationWindow, screen: Screen) {
-    let screen_width = screen.dimensions.width;
+fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: &Settings) {
+    let screen_width = screen_wrapper.dimensions.width;
 
     set_visual(&window, &None);
 
@@ -62,40 +66,47 @@ fn set_bar(window: &ApplicationWindow, screen: Screen) {
     window.set_default_size(width, height);
     window.set_app_paintable(true); // crucial for transparency
     let hbox = gtk::Box::new(Horizontal, 0);
-    let desktops_list = get_desktops_from_display(&screen.name);
+    let desktops_list = get_desktops_from_display(&screen_wrapper.name);
     let desktops_labels = render_labels(desktops_list);
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
-    let label_artist = init_playerctl();
+    let label_window = init_x11();
+    hbox.add(&label_window);
+    let label_artist = init_player(settings);
     hbox.add(&label_artist);
     let label_time = init_clock();
     hbox.add(&label_time);
     window.add(&hbox);
-    set_window_positions(&window, screen.dimensions);
+    set_window_positions(&window, screen_wrapper.dimensions);
 }
 
-pub fn build_ui(application: &gtk::Application) {
+pub fn build_ui(application: &gtk::Application, settings: &Settings) {
     let window = ApplicationWindow::new(application);
     let screens = get_displays_geometry(&window);
     for (i, screen) in screens.into_iter().enumerate() {
         if i != 0 {
-            set_bar(&window, screen);
+            set_bar(&window, screen, settings);
             return;
         }
-        set_bar(&ApplicationWindow::new(application), screen);
+        set_bar(&ApplicationWindow::new(application), screen, settings);
     }
 }
 
-fn get_displays_geometry(window: &ApplicationWindow) -> Vec<Screen> {
+fn get_displays_geometry(window: &ApplicationWindow) -> Vec<ScreenWrapper> {
     let mut screens = Vec::new();
     if let Some(screen) = window.get_screen() {
-        let display = screen.get_display();
+        let screen_rc = Rc::new(screen);
+        let screen_clone = screen_rc.clone();
+        let display = screen_clone.get_display();
         let monitors_count = display.get_n_monitors();
         for monitor_index in 0..monitors_count {
             if let Some(monitor) = display.get_monitor(monitor_index) {
                 if let Some(name) = monitor.get_model() {
                     let dimensions = monitor.get_geometry();
-                    screens.push(Screen{ name, dimensions });
+                    screens.push(ScreenWrapper{
+                        name,
+                        dimensions
+                    });
                 }
             }
         }
@@ -103,7 +114,7 @@ fn get_displays_geometry(window: &ApplicationWindow) -> Vec<Screen> {
     return screens;
 }
 
-fn set_visual(window: &ApplicationWindow, _screen: &Option<gdk::Screen>) {
+fn set_visual(window: &ApplicationWindow, _screen: &Option<Screen>) {
     if let Some(screen) = window.get_screen() {
         if let Some(visual) = screen.get_rgba_visual() {
             window.set_visual(&visual);

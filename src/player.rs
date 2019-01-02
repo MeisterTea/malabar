@@ -12,6 +12,7 @@ use mpris::{
     Player, PlayerFinder, ProgressTick,
     ProgressTracker, PlaybackStatus,
 };
+use ::Settings;
 
 struct EventTracker<'a> {
     progress_tracker: ProgressTracker<'a>,
@@ -56,52 +57,54 @@ impl<'a> EventTracker<'a> {
     }
 }
 
-pub fn init_playerctl() -> gtk::Box {
-    let player = PlayerFinder::new()
-        .unwrap()
-        .find_active()
-        .expect("Could not find a running player");
-    let player_rc = Rc::new(player);
-    let title = Label::new(None);
-    set_label_color(&title, 255, 255, 255);
-    title.set_margin_end(10);
-    let play_pause = Label::new(None);
-    let play_pause_event_box = set_play_pause_button(&player_rc, &play_pause);
+pub fn init_player(settings: &Settings) -> gtk::Box {
     let previous = Label::new(None);
-    let previous_event_box = set_previous_button(&player_rc, &previous);
+    let play_pause = Label::new(None);
     let next = Label::new(None);
-    let next_event_box = set_next_button(&player_rc, &next);
-    let title_rc = Rc::new(RefCell::new(title.clone()));
-    let play_pause_rc = Rc::new(RefCell::new(play_pause.clone()));
-    let controls = Controls {
-        title: title_rc.clone(),
-        play_pause: play_pause_rc.clone(),
-    };
-    spawn_loop_thread(controls);
     let hbox = gtk::Box::new(Horizontal, 0);
-    hbox.add(&title);
-    hbox.add(&previous_event_box);
-    hbox.add(&play_pause_event_box);
-    hbox.add(&next_event_box);
+    match PlayerFinder::new().unwrap().find_active() {
+        Ok(player) => {
+            let player_rc = Rc::new(player);
+            let title = Label::new(None);
+            set_label_color(&title, 255, 255, 255);
+            title.set_margin_end(10);
+            let previous_event_box = set_previous_button(&player_rc, &previous);
+            let play_pause_event_box = set_play_pause_button(&player_rc, &play_pause);
+            let next_event_box = set_next_button(&player_rc, &next);
+            let title_rc = Rc::new(RefCell::new(title.clone()));
+            let play_pause_rc = Rc::new(RefCell::new(play_pause.clone()));
+            let controls = Controls {
+                title: title_rc.clone(),
+                play_pause: play_pause_rc.clone(),
+            };
+            spawn_loop_thread(controls, settings.debug);
+            hbox.add(&title);
+            hbox.add(&previous_event_box);
+            hbox.add(&play_pause_event_box);
+            hbox.add(&next_event_box);
+        },
+        Err(e) => if settings.debug { println!("{}", e); }
+    }
     hbox
 }
 
-fn spawn_loop_thread(controls: Controls) {
+fn spawn_loop_thread(controls: Controls, debug: bool) {
     let (tx, rx) = channel();
     thread::spawn(move || {
-        let player = PlayerFinder::new()
-            .unwrap()
-            .find_active()
-            .expect("Could not find a running player");
-        let progress_tracker = player
-            .track_progress(::REFRESH_INTERVAL)
-            .expect("Could not determine progress of player");
+        match PlayerFinder::new().unwrap().find_active() {
+            Ok(player) => {
+                let progress_tracker = player
+                    .track_progress(::REFRESH_INTERVAL)
+                    .expect("Could not determine progress of player");
 
-        let mut event_tracker = EventTracker {
-            progress_tracker: progress_tracker,
-            tx
-        };
-        event_tracker.main_loop();
+                let mut event_tracker = EventTracker {
+                    progress_tracker: progress_tracker,
+                    tx
+                };
+                event_tracker.main_loop();
+            },
+            Err(e) => if debug { println!("{}", e); }
+        }
 
     });
     timeout_add(::REFRESH_INTERVAL, move || {
