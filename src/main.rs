@@ -7,6 +7,7 @@ extern crate glib;
 extern crate chrono;
 extern crate mpris;
 extern crate clap;
+extern crate x11_get_windows;
 
 use clap::{App, Arg};
 
@@ -18,13 +19,17 @@ mod bspwm;
 mod clock;
 mod window;
 mod player;
-mod x11;
+mod x11_title;
 
 const REFRESH_INTERVAL: u32 = 100;
 
 pub struct Settings {
     debug: bool
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct Null;
+
 fn args_to_settings() -> Settings {
     let matches = App::new("malabar")
         .version("alpha")

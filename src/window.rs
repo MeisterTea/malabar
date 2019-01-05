@@ -7,7 +7,7 @@ use std::rc::Rc;
 use bspwm::{get_desktops_from_display, render_desktops};
 use clock::init_clock;
 use player::init_player;
-use x11::init_x11;
+use x11_title::init_x11;
 use ::Settings;
 
 #[derive(Debug)]
@@ -71,7 +71,8 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
     let label_window = init_x11();
-    hbox.add(&label_window);
+    hbox.add(&*label_window);
+    init_x11();
     let label_artist = init_player(settings);
     hbox.add(&label_artist);
     let label_time = init_clock();

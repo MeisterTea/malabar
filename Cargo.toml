@@ -7,9 +7,9 @@ authors = ["MeisterTea <mr.pasquier.francois@gmail.com>"]
 gdk = "^0"
 gtk = "^0"
 gio = "^0"
-x11 = "^0"
 clap = "~2.32.0"
 mpris = { git = "https://github.com/Mange/mpris-rs" }
+x11_get_windows = { git = "https://github.com/HiruNya/x11_get_windows" }
 
 futures-preview = { version = "0.2", optional = true }
 pango = "^0"
@@ -26,4 +26,3 @@ gtk_3_20 = ["gtk_3_18", "gtk/v3_20"] #for CI tools
 gtk_3_22 = ["gtk_3_20", "gtk/v3_22"] #for CI tools
 gtk_3_22_30 = ["gtk_3_22", "gtk/v3_22_30"] #for CI tools
 futures-stable = ["futures-preview", "glib/futures", "gio/futures"]
-
