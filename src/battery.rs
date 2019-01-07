@@ -1,4 +1,6 @@
 use gtk::{
+    timeout_add,
+    Continue,
     Label,
     LabelExt,
     WidgetExt
@@ -6,7 +8,8 @@ use gtk::{
 use std::{
     fs,
     fs::File,
-    io::{Read, self}
+    io::{Read, self},
+    rc::Rc
 };
 use crate::paint::set_label_color;
 
@@ -48,8 +51,11 @@ fn get_charge(battery_id: &String, state: &str) -> String {
         .unwrap_or_else(|_| String::from(""))
 }
 
-pub fn init_battery() -> Label {
+pub fn init_battery() -> Rc<Label> {
     let label = Label::new(None);
+    label.set_margin_end(7);
+    set_label_color(&label, 255, 255, 255);
+    let label_rc = Rc::new(label);
     let battery_id = &get_battery_ids()[0];
     let current_charge = get_charge(battery_id, "energy_now").parse::<u32>()
         .unwrap_or_else(|_| 0 as u32);
@@ -61,9 +67,14 @@ pub fn init_battery() -> Label {
         current_charge,
         full_charge
     };
-    let battery_percentage = format!("{:.*}%", 0, current_charge as f32 / full_charge as f32 * 100 as f32);
-    label.set_text(&battery_percentage);
-    label.set_margin_end(7);
-    set_label_color(&label, 255, 255, 255);
-    label
+    let label_clone = label_rc.clone();
+    let battery_id_clone = battery_id.clone(); // just use lifetime of battery_id or reintroduce battery Struct ?
+    timeout_add(500, move || {
+        let current_charge = get_charge(&battery_id_clone, "energy_now").parse::<u32>()
+            .unwrap_or_else(|_| 0 as u32);
+        let battery_percentage = format!("{:.*}%", 0, current_charge as f32 / full_charge as f32 * 100 as f32);
+        label_clone.set_text(&battery_percentage);
+        Continue(true)
+    });
+    label_rc // Why is Rc needed here and not in clock module ?
 }

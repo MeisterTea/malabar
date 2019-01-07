@@ -87,7 +87,7 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     let artist_label = init_player(settings);
     hbox.add(&artist_label);
     let battery_label = init_battery();
-    hbox.add(&battery_label);
+    hbox.add(&*battery_label);
     let time_label = init_clock();
     hbox.add(&time_label);
     window.add(&hbox);
