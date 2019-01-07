@@ -1,14 +1,25 @@
-use gdk::{Screen, ScreenExt, DisplayExt, MonitorExt, Rectangle};
-use gtk::prelude::*;
 use gtk::ApplicationWindow;
 use gtk::Orientation::Horizontal;
 use std::rc::Rc;
-
-use bspwm::{get_desktops_from_display, render_desktops};
-use clock::init_clock;
-use player::init_player;
-use x11_title::init_x11;
-use ::Settings;
+use crate::bspwm::{get_desktops_from_display, render_desktops};
+use crate::clock::init_clock;
+use crate::player::init_player;
+use crate::x11_title::init_x11;
+use crate::battery::init_battery;
+use crate::Settings;
+use gdk::{
+    DisplayExt,
+    MonitorExt,
+    Rectangle,
+    Screen,
+    ScreenExt
+};
+use gtk::{
+    Inhibit,
+    ContainerExt,
+    GtkWindowExt,
+    WidgetExt
+};
 
 #[derive(Debug)]
 struct ScreenWrapper {
@@ -70,13 +81,15 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     let desktops_labels = render_labels(desktops_list);
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
-    let label_window = init_x11();
-    hbox.add(&*label_window);
+    let window_label = init_x11();
+    hbox.add(&*window_label);
     init_x11();
-    let label_artist = init_player(settings);
-    hbox.add(&label_artist);
-    let label_time = init_clock();
-    hbox.add(&label_time);
+    let artist_label = init_player(settings);
+    hbox.add(&artist_label);
+    let battery_label = init_battery();
+    hbox.add(&battery_label);
+    let time_label = init_clock();
+    hbox.add(&time_label);
     window.add(&hbox);
     set_window_positions(&window, screen_wrapper.dimensions);
 }

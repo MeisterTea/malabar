@@ -1,5 +1,3 @@
-
-use gtk::prelude::*;
 use std::process::{Command, Stdio};
 use std::cell::Ref;
 use std::sync::mpsc::Sender;
@@ -9,9 +7,17 @@ use std::thread;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::sync::mpsc::channel;
-use gtk::Orientation::Horizontal;
+use glib::Continue;
+use gtk::{
+    ContainerExt,
+    Inhibit,
+    LabelExt,
+    Orientation::Horizontal,
+    WidgetExt
+};
+use crate::REFRESH_INTERVAL;
 
-use paint::set_label_color;
+use crate::paint::set_label_color;
 
 #[derive(Debug)]
 pub struct Desktop {
@@ -138,7 +144,7 @@ fn spawn_bspc_subscribe(desktop_labels: Rc<RefCell<Vec<gtk::Label>>>) {
 
     });
     let labels_clone = desktop_labels.clone();
-    gtk::timeout_add(::REFRESH_INTERVAL, move || {
+    gtk::timeout_add(REFRESH_INTERVAL, move || {
         let iter = rx.try_iter();
         for query_result in iter {
             set_desktops_style(labels_clone.borrow(), &query_result);

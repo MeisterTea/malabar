@@ -1,5 +1,4 @@
-use gtk::prelude::*;
-use gtk::Label;
+use gtk::{Label, LabelExt};
 use pango::{Attribute, AttrList};
 
 fn u8_to_u16_ratio(num: u8) -> u16 {

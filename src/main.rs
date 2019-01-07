@@ -1,24 +1,25 @@
 extern crate cairo;
-extern crate pango;
+extern crate chrono;
+extern crate clap;
 extern crate gdk;
 extern crate gio;
-extern crate gtk;
 extern crate glib;
-extern crate chrono;
+extern crate gtk;
 extern crate mpris;
-extern crate clap;
+extern crate pango;
 extern crate x11_get_windows;
 
 use clap::{App, Arg};
 
 use gio::prelude::*;
-use window::build_ui;
+use crate::window::build_ui;
 
-mod paint;
+mod battery;
 mod bspwm;
 mod clock;
-mod window;
+mod paint;
 mod player;
+mod window;
 mod x11_title;
 
 const REFRESH_INTERVAL: u32 = 100;

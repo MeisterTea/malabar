@@ -1,18 +1,28 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-use gtk::prelude::*;
-use gtk::{timeout_add, Label, EventBox};
+use glib::Continue;
 use gtk::Orientation::Horizontal;
-use paint::{set_label_color, set_label_scale};
-
+use crate::paint::{set_label_color, set_label_scale};
 use std::thread;
 use std::sync::mpsc::{channel, Sender};
-
 use mpris::{
-    Player, PlayerFinder, ProgressTick,
-    ProgressTracker, PlaybackStatus,
+    PlaybackStatus,
+    Player,
+    PlayerFinder,
+    ProgressTick,
+    ProgressTracker
 };
-use ::Settings;
+use gtk::{
+    timeout_add,
+    ContainerExt,
+    EventBox,
+    Inhibit,
+    Label,
+    LabelExt,
+    WidgetExt
+};
+use crate::Settings;
+use crate::REFRESH_INTERVAL;
 
 struct EventTracker<'a> {
     progress_tracker: ProgressTracker<'a>,
@@ -94,7 +104,7 @@ fn spawn_loop_thread(controls: Controls, debug: bool) {
         match PlayerFinder::new().unwrap().find_active() {
             Ok(player) => {
                 let progress_tracker = player
-                    .track_progress(::REFRESH_INTERVAL)
+                    .track_progress(REFRESH_INTERVAL)
                     .expect("Could not determine progress of player");
 
                 let mut event_tracker = EventTracker {
@@ -107,7 +117,7 @@ fn spawn_loop_thread(controls: Controls, debug: bool) {
         }
 
     });
-    timeout_add(::REFRESH_INTERVAL, move || {
+    timeout_add(REFRESH_INTERVAL, move || {
         let title = controls.title.borrow();
         let play_pause = controls.play_pause.borrow();
         let iter = rx.try_iter();

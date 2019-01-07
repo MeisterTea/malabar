@@ -1,9 +1,15 @@
-use gtk::{Label, LabelExt, WidgetExt, timeout_add};
 use glib::Continue;
 use x11_get_windows::Session;
 use std::rc::Rc;
 use std::cell::RefCell;
-use paint::set_label_color;
+use crate::paint::set_label_color;
+use gtk::{
+    Label,
+    LabelExt,
+    timeout_add,
+    WidgetExt
+};
+use crate::REFRESH_INTERVAL;
 
 pub fn init_x11() -> Rc<Label> {
     let session = Session::open()
@@ -14,7 +20,7 @@ pub fn init_x11() -> Rc<Label> {
     let label_rc = Rc::new(label);
     let label_clone = label_rc.clone();
     let session_rc = Rc::new(RefCell::new(session));
-    timeout_add(::REFRESH_INTERVAL, move || {
+    timeout_add(REFRESH_INTERVAL, move || {
         let session_clone = session_rc.clone();
         let raw_title = get_current_title(session_clone);
         let title = raw_title.as_str();
