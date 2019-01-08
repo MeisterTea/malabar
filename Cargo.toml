@@ -11,6 +11,7 @@ gio = "^0"
 clap = "~2.32.0"
 mpris = { git = "https://github.com/Mange/mpris-rs" }
 x11_get_windows = { git = "https://github.com/HiruNya/x11_get_windows" }
+alsa = { git = "https://github.com/diwic/alsa-rs" }
 
 futures-preview = { version = "0.2", optional = true }
 pango = "^0"

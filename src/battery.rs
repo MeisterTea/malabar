@@ -57,7 +57,10 @@ fn get_data(battery_name: &String) -> Result<(String, u8), io::Error> {
 fn update(label: &Label, battery_name: &String) {
     match get_data(&battery_name) {
         Ok((_state, charge)) => {
-            label.set_text(&charge.to_string());
+            let charge_string = &charge.to_string();
+            if &label.get_text().unwrap() != charge_string {
+                label.set_text(charge_string);
+            }
         },
         Err(_e) => {}
     }
