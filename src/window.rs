@@ -5,7 +5,7 @@ use crate::bspwm::{get_desktops_from_display, render_desktops};
 use crate::clock::init_clock;
 use crate::player::init_player;
 use crate::x11_title::init_x11;
-use crate::battery::init_battery;
+use crate::battery::BatteryWidget;
 use crate::Settings;
 use gdk::{
     DisplayExt,
@@ -86,7 +86,7 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     init_x11();
     let artist_label = init_player(settings);
     hbox.add(&artist_label);
-    let battery_label = init_battery();
+    let battery_label = BatteryWidget::new();
     hbox.add(&*battery_label);
     let time_label = init_clock();
     hbox.add(&time_label);
