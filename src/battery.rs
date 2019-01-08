@@ -61,7 +61,7 @@ impl BatteryWidget {
         Ok((state, charge))
     }
 
-    fn update(&self, label: &Label, force_refresh: bool) {
+    fn update(&mut self, label: &Label, force_refresh: bool) {
         match BatteryWidget::get_data(&self.name) {
             Ok((state, charge)) => {
                 if self.charge != charge
@@ -80,6 +80,8 @@ impl BatteryWidget {
                             };
                             let charge_string = &charge.to_string();
                             label.set_text(&format!("{}{}%", battery_icon, charge_string));
+                            self.charge = charge;
+                            self.state = state;
                         }
             },
             Err(_e) => {}
@@ -94,14 +96,14 @@ impl BatteryWidget {
         let name = &BatteryWidget::get_battery_names()[0];
         let label_clone = label_rc.clone();
         let (state, charge) = BatteryWidget::get_data(&name).unwrap_or_else(|_| (String::from(""), 0));
-        let battery = BatteryWidget {
+        let mut battery = BatteryWidget {
             charge,
             name: name.to_string(),
             state
         };
-        BatteryWidget::update(&battery, &label_clone, true); // TODO refactor to closure ?
+        BatteryWidget::update(&mut battery, &label_clone, true); // TODO refactor to closure ?
         timeout_add(REFRESH_RATE, move || {
-            BatteryWidget::update(&battery, &label_clone, false);
+            BatteryWidget::update(&mut battery, &label_clone, false);
             Continue(true)
         });
         label_rc
