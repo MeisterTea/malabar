@@ -8,25 +8,20 @@ use gtk::{
 use std::{
     fs,
     fs::File,
-    io::{Read, self},
+    io::{
+        BufRead,
+        BufReader,
+        self
+    },
+    iter::FromIterator,
     rc::Rc
 };
 use crate::paint::set_label_color;
 
 const POWER_SUPPLY_ROOT: &str = "/sys/class/power_supply";
 const REFRESH_RATE: u32 = 500;
-const FALLBACK_PREFIX: &str = "charge";
 
-#[derive(Debug)]
-struct Battery {
-    id: String,
-    charging: bool,
-    prefix: String,
-    current_charge: u32,
-    full_charge: u32
-}
-
-fn get_battery_ids() -> Vec<String> {
+fn get_battery_names() -> Vec<String> {
     let dir_entries = fs::read_dir(POWER_SUPPLY_ROOT).unwrap();
     let mut batteries = Vec::new();
     for dir_entry in dir_entries {
@@ -41,55 +36,44 @@ fn get_battery_ids() -> Vec<String> {
     batteries
 }
 
-fn get_value(battery_id: &String, state: &str) -> Result<String, io::Error> {
-    let state_path = format!("{}/{}/{}", POWER_SUPPLY_ROOT, battery_id, state);
-    let mut file = File::open(state_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    Ok(contents.trim().to_owned())
+fn get_data(battery_name: &String) -> Result<(String, u8), io::Error> {
+    let file = File::open(format!("{}/{}/uevent", POWER_SUPPLY_ROOT, battery_name))?;
+    let content = BufReader::new(&file);
+    let mut state = String::from("");
+    let mut charge = 0 as u8;
+    for line in content.lines() {
+        let line = line?;
+        let tokens = Vec::from_iter(line.split('=')); 
+        let token = tokens.last().unwrap();
+        match tokens.first().unwrap() {
+            &"POWER_SUPPLY_STATUS" => { state = token.to_string(); },
+            &"POWER_SUPPLY_CAPACITY" => { charge = token.parse::<u8>().unwrap(); },
+            _ => {}
+        }
+    }
+    Ok((state, charge))
 }
 
-fn get_charge(battery_id: &String, state: &str) -> String {
-    get_value(&battery_id, state)
-        .unwrap_or_else(|_| String::from(""))
-}
-
-fn get_prefix(battery_id: &String) -> Result<String, io::Error> {
-    let path = format!("{}/{}/energy_now", POWER_SUPPLY_ROOT, battery_id);
-    match File::open(path) {
-        Ok(res) => Ok(String::from("energy")),
-        Err(e) => Err(e)
+fn update(label: &Label, battery_name: &String) {
+    match get_data(&battery_name) {
+        Ok((_state, charge)) => {
+            label.set_text(&charge.to_string());
+        },
+        Err(_e) => {}
     }
 }
 
-// TODO use /uevent ?
 pub fn init_battery() -> Rc<Label> {
     let label = Label::new(None);
     label.set_margin_end(7);
     set_label_color(&label, 255, 255, 255);
     let label_rc = Rc::new(label);
-    let battery_id = &get_battery_ids()[0];
-    let prefix = get_prefix(battery_id).unwrap_or_else(|_| String::from(FALLBACK_PREFIX));
-    let prefix_clone = prefix.to_owned();
-    let current_charge = get_charge(battery_id, &format!("{}_now", &prefix)).parse::<u32>()
-        .unwrap_or_else(|_| 0 as u32);
-    let full_charge = get_charge(battery_id, &format!("{}_full", &prefix)).parse::<u32>()
-        .unwrap_or_else(|_| 0 as u32);
-    let battery = Battery {
-        prefix,
-        current_charge,
-        full_charge,
-        id: battery_id.to_string(),
-        charging: true
-    };
+    let battery_name = &get_battery_names()[0];
     let label_clone = label_rc.clone();
-    let battery_id_clone = battery_id.clone(); // just use lifetime of battery_id or reintroduce battery Struct ?
+    let battery_name_clone = battery_name.clone();
     timeout_add(REFRESH_RATE, move || {
-        let current_charge = get_charge(&battery_id_clone, &format!("{}_now", &prefix_clone)).parse::<u32>()
-            .unwrap_or_else(|_| 0 as u32);
-        let battery_percentage = format!("{:.*}%", 0, current_charge as f32 / full_charge as f32 * 100 as f32);
-        label_clone.set_text(&battery_percentage);
+        update(&label_clone, &battery_name_clone);
         Continue(true)
     });
-    label_rc // Why is Rc needed here and not in clock module ?
+    label_rc
 }
