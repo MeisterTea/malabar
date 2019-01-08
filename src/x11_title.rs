@@ -11,13 +11,13 @@ use gtk::{
 };
 use crate::REFRESH_INTERVAL;
 
-pub fn init_x11() -> Rc<Label> {
+pub fn init_x11() -> Label {
     let session = Session::open()
         .expect("Could not open a new session.");
     let label = Label::new(None);
     label.set_margin_end(7);
     set_label_color(&label, 255, 255, 255);
-    let label_rc = Rc::new(label);
+    let label_rc = Rc::new(label.clone());
     let label_clone = label_rc.clone();
     let session_rc = Rc::new(RefCell::new(session));
     timeout_add(REFRESH_INTERVAL, move || {
@@ -27,7 +27,7 @@ pub fn init_x11() -> Rc<Label> {
         label_clone.set_text(title);
         Continue(true)
     });
-    label_rc.clone()
+    label
 }
 
 pub fn get_current_title(session: Rc<RefCell<Session>>) -> String {

@@ -88,11 +88,11 @@ impl BatteryWidget {
         }
     }
 
-    pub fn new() -> Rc<Label> {
+    pub fn new() -> Label {
         let label = Label::new(None);
         label.set_margin_end(7);
         set_label_color(&label, 255, 255, 255);
-        let label_rc = Rc::new(label);
+        let label_rc = Rc::new(label.clone());
         let name = &BatteryWidget::get_battery_names()[0];
         let label_clone = label_rc.clone();
         let (state, charge) = BatteryWidget::get_data(&name).unwrap_or_else(|_| (String::from(""), 0));
@@ -106,6 +106,6 @@ impl BatteryWidget {
             BatteryWidget::update(&mut battery, &label_clone, false);
             Continue(true)
         });
-        label_rc
+        label
     }
 }

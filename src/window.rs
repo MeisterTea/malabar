@@ -82,12 +82,12 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
     let window_label = init_x11();
-    hbox.add(&*window_label);
+    hbox.add(&window_label);
     init_x11();
     let artist_label = init_player(settings);
     hbox.add(&artist_label);
     let battery_label = BatteryWidget::new();
-    hbox.add(&*battery_label);
+    hbox.add(&battery_label);
     let time_label = ClockWidget::new();
     hbox.add(&time_label);
     window.add(&hbox);
