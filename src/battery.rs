@@ -19,7 +19,7 @@ use std::{
 use crate::paint::set_label_color;
 
 const POWER_SUPPLY_ROOT: &str = "/sys/class/power_supply";
-const REFRESH_RATE: u32 = 500;
+const REFRESH_RATE: u32 = 1000;
 
 pub struct BatteryWidget {
     charge: u8,
@@ -76,6 +76,7 @@ impl BatteryWidget {
                             };
                             battery_icon = match state.as_ref() {
                                 "Charging" => " ",
+                                c if c == "Unknown" && charge != 100 => " ", // FIXME Find a way to get the real state 
                                 _ => battery_icon
                             };
                             let charge_string = &charge.to_string();
