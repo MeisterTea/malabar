@@ -128,7 +128,7 @@ impl PlayerWidget {
             }
         });
         let (title, status) = PlayerWidget::get_data(&rx)
-            .unwrap_or_else(|_| ("".to_string(), PlaybackStatus::Paused));
+            .unwrap_or_else(|_| ("".to_string(), PlaybackStatus::Stopped));
         let mut player_widget = PlayerWidget { title, status };
         player_widget.update(&rx, &controls, true);
         timeout_add(REFRESH_INTERVAL, move || {
@@ -186,7 +186,7 @@ impl PlayerWidget {
                         play_pause_borrow.set_text(match current_status {
                             PlaybackStatus::Playing => "▮▮",
                             PlaybackStatus::Paused => "▶",
-                            PlaybackStatus::Stopped => ""
+                            PlaybackStatus::Stopped => "▶"
                         });
                         self.status = current_status
                     }

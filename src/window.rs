@@ -1,7 +1,7 @@
 use gtk::ApplicationWindow;
 use gtk::Orientation::Horizontal;
 use std::rc::Rc;
-use crate::bspwm::{get_desktops_from_display, render_desktops};
+use crate::bspwm::BspwmDesktopsWidget;
 use crate::clock::ClockWidget;
 use crate::player::PlayerWidget;
 use crate::x11_title::X11TitleWidget;
@@ -21,7 +21,6 @@ use gtk::{
     WidgetExt
 };
 
-#[derive(Debug)]
 struct ScreenWrapper {
     name: String,
     dimensions: Rectangle
@@ -77,10 +76,8 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     window.set_default_size(width, height);
     window.set_app_paintable(true); // crucial for transparency
     let hbox = gtk::Box::new(Horizontal, 0);
-    let desktops_list = get_desktops_from_display(&screen_wrapper.name);
-    let desktops_labels = render_labels(desktops_list);
-    let desktops_box = render_desktops(desktops_labels);
-    hbox.add(&desktops_box);
+    let desktops_labels = BspwmDesktopsWidget::new(&screen_wrapper.name);
+    hbox.add(&desktops_labels);
     let window_label = X11TitleWidget::new();
     hbox.add(&window_label);
     let artist_label = PlayerWidget::new(settings);
@@ -145,16 +142,4 @@ fn draw(_window: &ApplicationWindow, ctx: &cairo::Context) -> Inhibit {
 fn quit(_window: &ApplicationWindow, _event: &gdk::Event) -> Inhibit {
     _window.destroy();
     Inhibit(false)
-}
-
-fn render_labels(desktops: Vec<String>) -> Vec<gtk::Label> {
-    const MARGINS: i32 = 7;
-    let mut desktop_labels: Vec<gtk::Label> = Vec::new();
-    for desktop in desktops {
-        let label = gtk::Label::new(desktop.as_str());
-        label.set_margin_start(MARGINS);
-        label.set_margin_end(MARGINS);
-        desktop_labels.push(label);
-    }
-    desktop_labels
 }
