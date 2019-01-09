@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::bspwm::{get_desktops_from_display, render_desktops};
 use crate::clock::ClockWidget;
 use crate::player::PlayerWidget;
-use crate::x11_title::init_x11;
+use crate::x11_title::X11TitleWidget;
 use crate::battery::BatteryWidget;
 use crate::Settings;
 use gdk::{
@@ -81,9 +81,8 @@ fn set_bar(window: &ApplicationWindow, screen_wrapper: ScreenWrapper, settings: 
     let desktops_labels = render_labels(desktops_list);
     let desktops_box = render_desktops(desktops_labels);
     hbox.add(&desktops_box);
-    let window_label = init_x11();
+    let window_label = X11TitleWidget::new();
     hbox.add(&window_label);
-    init_x11();
     let artist_label = PlayerWidget::new(settings);
     hbox.add(&artist_label);
     let battery_label = BatteryWidget::new();
