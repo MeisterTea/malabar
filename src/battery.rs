@@ -24,7 +24,7 @@ const REFRESH_RATE: u32 = 1000;
 pub struct BatteryWidget {
     charge: u8,
     name: String,
-    state: String
+    state: String,
 }
 
 impl BatteryWidget {
@@ -74,11 +74,13 @@ impl BatteryWidget {
                                 c if c < 80 => " ",
                                 _ => " "
                             };
-                            battery_icon = match state.as_ref() {
-                                "Charging" => " ",
-                                c if c == "Unknown" && charge != 100 => " ", // FIXME Find a way to get the real state 
-                                _ => battery_icon
-                            };
+                            if charge != 100 {
+                                battery_icon = match state.as_ref() {
+                                    "Charging" => " ",
+                                    c if c == "Unknown" && charge != 100 => " ", // FIXME Find a way to get the real state 
+                                    _ => battery_icon
+                                };
+                            }
                             let charge_string = &charge.to_string();
                             label.set_text(&format!("{}{}%", battery_icon, charge_string));
                             self.charge = charge;
